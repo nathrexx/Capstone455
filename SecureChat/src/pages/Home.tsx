@@ -8,10 +8,9 @@ import ReactMarkdown from 'react-markdown';
 import rehypeSanitize from 'rehype-sanitize';
 import './Home.css';
 
-// Define encryption key (in a real app, this would be more securely managed)
 const ENCRYPTION_KEY = 'secure-chat-encryption-key';
 
-// User interfaces
+
 interface User {
   socketId: string;
   userId: number | string;
@@ -23,7 +22,7 @@ interface FileAttachment {
   name: string;
   type: string;
   size: number;
-  data: string; // Base64 encoded data
+  data: string; 
   encrypted: boolean;
 }
 
@@ -40,7 +39,7 @@ interface Message {
 }
 
 interface ChatState {
-  [key: string]: Message[]; // key is socketId of the other person
+  [key: string]: Message[]; // key is socketId of other person
 }
 
 interface TypingState {
@@ -65,9 +64,9 @@ const Home: React.FC = () => {
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Connect to socket server with authentication
+  
   useEffect(() => {
-    // Get user data from localStorage
+    
     const userDataString = localStorage.getItem('user');
     if (!userDataString) {
       console.error('No user data found, redirecting to login');
@@ -79,13 +78,13 @@ const Home: React.FC = () => {
       const userData = JSON.parse(userDataString);
       
       const socketIo = io('https://localhost:8081', {
-        rejectUnauthorized: false // For self-signed certificate
+        rejectUnauthorized: false 
       });
 
       socketIo.on('connect', () => {
         console.log('Connected to socket server with ID:', socketIo.id);
         
-        // Create current user object
+        
         const currentUserData: User = {
           socketId: socketIo.id,
           userId: userData.id,
@@ -95,7 +94,7 @@ const Home: React.FC = () => {
         
         setCurrentUser(currentUserData);
         
-        // Authenticate with socket server
+        
         socketIo.emit('authenticate', {
           id: userData.id,
           name: userData.name,
@@ -105,11 +104,11 @@ const Home: React.FC = () => {
 
       socketIo.on('users_list', (usersList: User[]) => {
         console.log('Received users list:', usersList);
-        // Filter out current user from the list
+        
         const filteredUsers = usersList.filter(u => u.socketId !== socketIo.id);
         setUsers(filteredUsers);
         
-        // Initialize empty chat arrays for each user
+        
         const initialChats: ChatState = {};
         usersList.forEach(user => {
           if (user.socketId !== socketIo.id && !chats[user.socketId]) {
@@ -121,7 +120,7 @@ const Home: React.FC = () => {
           setChats(prev => ({ ...prev, ...initialChats }));
         }
         
-        // Select first user by default if none selected
+        
         if (!selectedUser && filteredUsers.length > 0) {
           setSelectedUser(filteredUsers[0]);
         }
@@ -130,18 +129,18 @@ const Home: React.FC = () => {
       socketIo.on('chat message', (msg: Message) => {
         console.log('Received message:', msg);
         
-        // Add the message to the appropriate chat
+        
         setChats(prevChats => {
           const chatUserId = msg.sender === socketIo.id ? msg.receiver : msg.sender;
           
-          // Check if this message already exists in our state to prevent duplicates
+          
           const messageExists = prevChats[chatUserId]?.some(m => m.id === msg.id);
           
           if (messageExists) {
-            return prevChats; // Don't add if it already exists
+            return prevChats; 
           }
           
-          // Decrypt file attachment if present
+          
           let processedMsg = { ...msg };
           if (msg.attachment?.encrypted) {
             try {
@@ -174,19 +173,19 @@ const Home: React.FC = () => {
           };
         });
         
-        // Mark message as read if it's from the currently selected user
+        
         if (msg.sender !== socketIo.id && selectedUser && msg.sender === selectedUser.socketId) {
           socketIo.emit('message_read', { messageId: msg.id, reader: socketIo.id });
         }
       });
 
-      // Existing socket event handlers...
+      
       socketIo.on('message_read', (data: { messageId: string, reader: string }) => {
-        // Update read status of messages
+       
         setChats(prevChats => {
           const updatedChats = { ...prevChats };
           
-          // Look through all chats to find the message
+          
           Object.keys(updatedChats).forEach(userId => {
             updatedChats[userId] = updatedChats[userId].map(msg => 
               msg.id === data.messageId ? { ...msg, read: true } : msg
@@ -206,7 +205,7 @@ const Home: React.FC = () => {
           return prev;
         });
         
-        // Initialize empty chat for new user
+        
         setChats(prev => {
           if (!prev[user.socketId]) {
             return { ...prev, [user.socketId]: [] };
@@ -219,7 +218,6 @@ const Home: React.FC = () => {
         console.log('User disconnected:', user);
         setUsers(prev => prev.filter(u => u.socketId !== user.socketId));
         
-        // If selected user disconnects, select another user if available
         if (selectedUser && user.socketId === selectedUser.socketId) {
           const remainingUsers = users.filter(u => u.socketId !== user.socketId);
           if (remainingUsers.length > 0) {
@@ -242,7 +240,6 @@ const Home: React.FC = () => {
 
       setSocket(socketIo);
 
-      // Cleanup on component unmount
       return () => {
         if (typingTimeoutRef.current) {
           clearTimeout(typingTimeoutRef.current);
@@ -255,9 +252,7 @@ const Home: React.FC = () => {
     }
   }, [navigate]);
 
-  // Rest of your existing useEffects...
   
-  // Handle file selection
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
@@ -265,7 +260,7 @@ const Home: React.FC = () => {
       // Limit file size (5MB)
       if (file.size > 5 * 1024 * 1024) {
         alert('File size exceeds 5MB limit');
-        e.target.value = ''; // Clear the input
+        e.target.value = ''; 
         return;
       }
       
@@ -273,7 +268,6 @@ const Home: React.FC = () => {
     }
   };
   
-  // Handle file upload button click
   const handleFileButtonClick = () => {
     fileInputRef.current?.click();
   };
@@ -317,7 +311,7 @@ const Home: React.FC = () => {
     });
   };
   
-  // Handle emoji selection
+  // Handle emoji 
   const onEmojiClick = (emojiData: EmojiClickData) => {
     setMessage(prev => prev + emojiData.emoji);
     setShowEmojiPicker(false);
@@ -343,13 +337,11 @@ const Home: React.FC = () => {
     }
   };
   
-  // Toggle formatting toolbar
   const toggleFormatting = () => {
     setIsFormatting(!isFormatting);
     setShowEmojiPicker(false);
   };
 
-  // Handle sending message
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if ((!message.trim() && !selectedFile) || !selectedUser || !socket || !currentUser) return;
@@ -357,7 +349,6 @@ const Home: React.FC = () => {
     try {
       let attachment: FileAttachment | undefined;
       
-      // Process file attachment if present
       if (selectedFile) {
         attachment = await encryptFile(selectedFile);
       }
@@ -374,10 +365,8 @@ const Home: React.FC = () => {
         isFormatted: message.includes('*') || message.includes('`') || message.includes('[')
       };
 
-      // Emit message to server
       socket.emit('chat message', newMessage);
 
-      // Reset typing status and form fields
       setIsTyping(false);
       setMessage('');
       setSelectedFile(null);
@@ -398,7 +387,6 @@ const Home: React.FC = () => {
     }
   };
 
-  // Download file attachment
   const downloadAttachment = (attachment: FileAttachment) => {
     try {
       const linkElement = document.createElement('a');
@@ -413,7 +401,6 @@ const Home: React.FC = () => {
     }
   };
 
-  // Rest of your existing functions...
   const handleMessageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setMessage(e.target.value);
     if (!isTyping && e.target.value.length > 0) {
@@ -433,7 +420,6 @@ const Home: React.FC = () => {
   const selectUser = (user: User) => {
     setSelectedUser(user);
     
-    // Mark all unread messages from this user as read
     const unreadMessages = chats[user.socketId]?.filter(msg => 
       msg.sender === user.socketId && !msg.read
     );
@@ -448,12 +434,10 @@ const Home: React.FC = () => {
     }
   };
 
-  // Format timestamp to a readable time
   const formatTime = (date: Date) => {
     return new Date(date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
-  // Get number of unread messages for a user
   const getUnreadCount = (socketId: string) => {
     return chats[socketId]?.filter(msg => msg.sender === socketId && !msg.read).length || 0;
   };

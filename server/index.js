@@ -20,7 +20,6 @@ app.use(cors({
 
 app.use(express.json());
 
-// MySQL connection using .env variables
 const db = mysql.createConnection({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
@@ -28,7 +27,6 @@ const db = mysql.createConnection({
   database: process.env.DB_NAME,
 });
 
-// Connect to database
 db.connect((err) => {
   if (err) {
     console.error('Database connection failed:', err);
@@ -37,17 +35,14 @@ db.connect((err) => {
   }
 });
 
-// Simple test endpoint
 app.get("/test", (req, res) => {
   return res.status(200).json({message: "Server is running properly"});
 });
 
-// Ping endpoint to check server status
 app.get("/ping", (req, res) => {
   return res.status(200).json("Server is running");
 });
 
-// Signup route
 app.post("/signup", (req, res) => {
   console.log("Received signup request with data:", req.body);
   
@@ -71,7 +66,6 @@ app.post("/signup", (req, res) => {
   });
 });
 
-// Login route - UPDATED to return user data
 app.post(
   "/login",
   [
@@ -96,7 +90,6 @@ app.post(
 
       console.log("Login query results:", data);
       if (data.length > 0) {
-        // Return user data on successful login
         return res.status(200).json({ 
           success: true, 
           user: {
@@ -132,7 +125,7 @@ const io = new Server(server, {
 });
 
 // Keep track of connected users with Map instead of Set
-const connectedUsers = new Map(); // Maps socket ID to user info
+const connectedUsers = new Map(); 
 
 // Socket.IO event handlers
 io.on("connection", (socket) => {
