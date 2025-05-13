@@ -1,3 +1,5 @@
+Completed by Nathan Andrews & Cyrus Manoj
+
 To start:
 
 cd server
@@ -7,5 +9,5 @@ cd securechat
 npm install vite
 npm run dev
 
-hosted frontend but unable to get backend functionality:
+Cyrus hosted frontend but unable to get backend hosted:
 https://securechat.infy.uk
